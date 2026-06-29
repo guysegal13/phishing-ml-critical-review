@@ -147,14 +147,17 @@ that embeddings are the right tool for this particular dataset; it supports "you
 h2("Claim 2: \"no feature selection needed because every feature contributes\"")
 p("""This one is asserted rather than tested in the article &ndash; there's no ablation, no
 feature-importance plot, nothing showing that removing a feature actually hurts performance. My
-own correlation and mutual-information analysis (section 3 of the notebook) tells a pretty
-different story: two features, <tt>SSLfinal_State</tt> and <tt>URL_of_Anchor</tt>, carry the vast
-majority of the signal (Spearman correlation with the target of -0.74 and -0.70 respectively, far
-ahead of anything else), and several other features are so lopsided (95%+ one value) that they
-can't be contributing much no matter what the model is. That doesn't mean feature selection would
-necessarily <i>improve</i> accuracy &ndash; tree models in particular are pretty good at ignoring
-useless features on their own &ndash; but "every feature contributes" as stated isn't backed by
-anything in the article, and a quick look at the data suggests it's at best an oversimplification.""")
+own correlation analysis (notebook section 2) and mutual-information analysis (notebook section 3)
+tell a pretty different story: two features, <tt>SSLfinal_State</tt> and <tt>URL_of_Anchor</tt>,
+carry the vast majority of the signal (Spearman correlation with the target of -0.74 and -0.70
+respectively, far ahead of anything else). On top of that, most of the other 28 features sit in a
+heavily skewed 85-90% majority-class band (two, <tt>RightClick</tt> and <tt>Iframe</tt>, go past
+90%), which puts a hard ceiling on how much they can possibly contribute &ndash; a feature can't
+separate two classes well if 85-95% of rows take the same value regardless of label. That doesn't
+mean feature selection would necessarily <i>improve</i> accuracy &ndash; tree models in particular
+are pretty good at ignoring useless features on their own &ndash; but "every feature contributes"
+as stated isn't backed by anything in the article, and a quick look at the data suggests it's at
+best an oversimplification.""")
 
 h2("The methodology problem the article doesn't check: duplicate rows")
 p("""This is the part I'd flag as the most serious issue, and it applies to basically every
@@ -208,6 +211,8 @@ anything very slightly worse, basically noise) &ndash; trees split on thresholds
 encoding, so there's nothing to gain there. This is a clean, evidence-backed example of "the right
 preprocessing choice depends on the downstream model," not something I'd have known without
 testing it.""")
+
+fig("feature_skew.png", "Figure A. Every feature's distribution, ranked by the share of rows taken up by its most common value. Only RightClick (95.7%) and Iframe (90.8%) cross the 90% \"near-constant\" line, but roughly two thirds of the 30 features sit in the heavily-skewed 85-90% band. The handful pulled toward the balanced end (SSLfinal_State, URL_of_Anchor, having_Sub_Domain, web_traffic) are exactly the features that turn out to carry real signal in section 5.", width=4.6)
 
 h2("Scaling")
 p("""Not needed and I didn't apply it. Every feature is already bounded to [-1, 1]; I checked
@@ -350,9 +355,7 @@ h2("Feature importance / correlation")
 fig("feature_importance.png", "Figure 4. Random Forest feature importance, top 12 &ndash; dominated by the same two features flagged by the correlation analysis.", width=5.0)
 fig("mutual_information.png", "Figure 5. Mutual information with the target, top 12 features.", width=5.0)
 
-# ===========================================================================
-h1("6. Error Analysis")
-
+h2("Error analysis")
 p("""Looking at the Random Forest's mistakes on the raw test split: 19 false positives
 (legitimate sites flagged as phishing) and 32 false negatives (phishing sites missed entirely).
 The pattern in <i>why</i> each type of mistake happens is pretty clean and lines up with the
@@ -379,6 +382,48 @@ fewer false negatives &ndash; a flagged legitimate site costs a user a moment of
 phishing site can cost real money or credentials. That argues for tuning the classification
 threshold down rather than leaving it at the default 0.5, something neither the original article
 nor my reproduction actually does, but would be the natural next step before any real deployment.""")
+
+# ===========================================================================
+h1("6. Conclusions")
+
+h2("Key findings")
+bullets([
+    "The author's core pipeline reproduces reasonably well: logistic regression, a neural net, and tree ensembles all land in the low-to-high 90s on this dataset, consistent with the article's reported numbers.",
+    "47% of the dataset's rows are exact duplicates, and a naive random split leaks ~65% of the test set back into training as memorized rows &ndash; inflating tree-model accuracy by roughly 1.2 points. Nobody using this dataset that I found, including the article, checks for this.",
+    "A plain, untuned Random Forest matches the author's much more elaborate fastai entity-embedding model even after fixing that leak (96.5% vs. 97.0%), which undercuts the article's framing of embeddings as the thing that gets you to \"state of the art\" here.",
+    "Two features (<tt>SSLfinal_State</tt>, <tt>URL_of_Anchor</tt>) carry most of the predictive signal under three independent measures, contradicting the article's stated assumption that every feature contributes equally.",
+    "A hand-built aggregate feature (<tt>risk_flag_count</tt>) that sounded reasonable on paper didn't improve anything &ndash; a useful negative result.",
+])
+
+h2("Lessons learned")
+p("""The biggest one, by far: check a dataset for duplicate rows <i>before</i> trusting any
+train/test split on it, especially when the feature space is small and categorical (low
+cardinality means duplicate feature vectors are almost inevitable at this sample size). I went
+into this project expecting the interesting part to be comparing models, and it turned out the
+data-quality check I almost skipped was the more important finding. Second lesson: a model
+beating a fancier model on a leaky split doesn't mean much by itself, it's worth re-checking
+under cleaner conditions before drawing conclusions either way, in either direction.""")
+
+h2("Strengths and weaknesses of the proposed solution")
+p("""<b>Strengths:</b> the underlying 30-feature set is genuinely well designed, grounded in real
+attacker behavior, and documented in an actual academic paper rather than invented ad hoc. The
+article's code runs, is reasonably clear, and the overall "structural features + classical ML"
+approach is a sound one for this problem.""")
+p("""<b>Weaknesses:</b> no check for duplicate/leaked rows before splitting; no feature-importance
+or ablation evidence behind the claim that all features contribute; the headline "97% / state of
+the art" framing rests on the article's most complex model without comparing it fairly against
+simpler baselines; no discussion of the precision/recall trade-off that actually matters for a
+security use case; no acknowledgement that the balanced class split doesn't reflect real-world
+phishing prevalence.""")
+
+h2("Suggestions for future improvements")
+bullets([
+    "Deduplicate the dataset (or at least check for leakage) before reporting any accuracy number on it.",
+    "Evaluate at multiple decision thresholds, not just the default 0.5, and report precision/recall trade-offs explicitly given how differently false positives and false negatives cost out in a phishing context.",
+    "Test whether entity embeddings actually help on a dataset with genuinely high-cardinality categorical features before presenting them as the key driver of an accuracy gain on a low-cardinality one like this.",
+    "Add temporal/freshness features (certificate issue date, domain age in days rather than a binarized flag) so a model has a chance of tracking how attacker behavior shifts over time.",
+    "Validate against a more realistic class prior (e.g. via a precision-at-low-prevalence calculation) before making any claim about real-world deployment performance.",
+])
 
 # ===========================================================================
 h1("7. Executive Summary")
