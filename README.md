@@ -1,10 +1,10 @@
 # Detecting Phishing Websites with Machine Learning - reproduction & critique
 
-Final project for *Data Science in Cyber* (Dr. Uri Itai). The assignment was to pick a
+Final project for Data Science in Cyber (Dr. Uri Itai). The assignment was to pick a
 published article/blog/tutorial in a cybersecurity + ML topic, reproduce it, and critically
 check whether the author's claims actually hold up.
 
-I picked phishing website detection. Short version of what's in here: the source article trains
+I picked phishing website detection. what's in here: the source article trains
 logistic regression -> a neural net -> a fastai model with entity embeddings on the classic UCI
 Phishing Websites dataset, topping out at ~97% accuracy and calling that "state of the art." I
 reproduced the pipeline, added a couple of models the author didn't try (mainly Random Forest),
