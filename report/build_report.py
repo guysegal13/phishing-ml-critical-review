@@ -313,13 +313,19 @@ bullets([
 ])
 
 h2("Results &ndash; raw 80/20 split (matches the article's methodology)")
+p("""F2 (recall weighted twice as heavily as precision) is included alongside F1 because the
+error-analysis discussion later in this section argues recall matters more than precision for
+this specific threat &ndash; F2 is the number that actually reflects that stated priority instead
+of just asserting it in prose. I'm not reporting Fβ for other β values: F1 and F2 already span
+"precision and recall matter equally" and "recall matters noticeably more," which covers the
+realistic range of priorities here.""")
 table([
-    ["Model", "Accuracy", "Precision", "Recall", "F1", "MCC", "ROC-AUC"],
-    ["Logistic Regression", "0.928", "0.934", "0.900", "0.917", "0.853", "0.978"],
-    ["Random Forest", "0.977", "0.980", "0.967", "0.974", "0.953", "0.996"],
-    ["HistGradientBoosting", "0.969", "0.971", "0.958", "0.965", "0.937", "0.996"],
-    ["MLP (small NN)", "0.976", "0.978", "0.966", "0.972", "0.951", "0.996"],
-], col_widths=[1.7 * inch, 0.78 * inch, 0.78 * inch, 0.7 * inch, 0.6 * inch, 0.6 * inch, 0.78 * inch])
+    ["Model", "Accuracy", "Precision", "Recall", "F1", "F2", "MCC", "ROC-AUC"],
+    ["Logistic Regression", "0.928", "0.934", "0.900", "0.917", "0.907", "0.853", "0.978"],
+    ["Random Forest", "0.977", "0.980", "0.967", "0.974", "0.970", "0.953", "0.996"],
+    ["HistGradientBoosting", "0.969", "0.971", "0.958", "0.965", "0.961", "0.937", "0.996"],
+    ["MLP (small NN)", "0.976", "0.978", "0.966", "0.972", "0.969", "0.951", "0.996"],
+], col_widths=[1.55 * inch, 0.7 * inch, 0.7 * inch, 0.62 * inch, 0.5 * inch, 0.5 * inch, 0.55 * inch, 0.7 * inch])
 
 fig("model_comparison.png", "Figure 1. Accuracy / F1 / MCC / ROC-AUC across the four models, raw 80/20 split.")
 

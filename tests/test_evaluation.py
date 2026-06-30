@@ -23,7 +23,7 @@ def test_fit_and_score_returns_expected_keys():
         "LogReg", LogisticRegression(), X_train, X_test, y_train, y_test, X, y, cv=3
     )
 
-    expected_keys = {"model", "accuracy", "precision", "recall", "f1",
+    expected_keys = {"model", "accuracy", "precision", "recall", "f1", "f2",
                       "mcc", "roc_auc", "cv_f1_mean", "cv_f1_std"}
     assert expected_keys == set(metrics.keys())
     assert len(pred) == len(y_test)
