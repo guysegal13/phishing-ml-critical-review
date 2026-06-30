@@ -1,6 +1,6 @@
 """
 Generates report/Final_Report.pdf from plain text + the figures already
-sitting in ../figures. One-off build script, not graded itself.
+sitting in ../plots. One-off build script, not graded itself.
 """
 import os
 from reportlab.lib.pagesizes import LETTER
@@ -11,7 +11,7 @@ from reportlab.platypus import (SimpleDocTemplate, Paragraph, Spacer, Image,
                                  ListFlowable, ListItem, PageBreak, Table, TableStyle, KeepTogether)
 from reportlab.lib import colors
 
-FIG = os.path.join("..", "figures")
+FIG = os.path.join("..", "plots")
 
 styles = getSampleStyleSheet()
 styles.add(ParagraphStyle("TitleBig", parent=styles["Title"], fontSize=20, spaceAfter=4))

@@ -20,14 +20,14 @@ notebook/   phishing_detection_critical_review.ipynb - the actual analysis: data
 report/     Final_Report.pdf - the written report (summary, critical evaluation, feature
             engineering analysis, reproducibility analysis, experimental results,
             conclusions, executive summary, summing up).
-            build_report.py - script that regenerates the PDF from the figures in figures/.
+            build_report.py - script that regenerates the PDF from the figures in plots/.
 src/        small reusable module the notebook imports from instead of redefining things
             inline: data_loading.py (arff parser), feature_engineering.py (Cramer's V,
             redundancy check, risk-flag count, majority-class share), evaluation.py
             (the fit/score helper used for every model in the comparison).
 tests/      pytest unit tests for everything in src/.
 data/       phishing_websites.arff - the raw dataset, as downloaded.
-figures/    charts produced by the notebook, saved as PNGs (also embedded in the PDF).
+plots/      charts produced by the notebook, saved as PNGs (also embedded in the PDF).
 ```
 
 ## Source material
@@ -51,7 +51,7 @@ jupyter notebook notebook/phishing_detection_critical_review.ipynb
 The notebook adds the repo root to `sys.path` and imports from `src/`, and reads
 `data/phishing_websites.arff` via a relative `../data/...` path, so just open it from inside
 `notebook/` (which is what `jupyter notebook` does by default) and run all cells top to bottom.
-It'll regenerate everything in `figures/` along the way. Everything that uses randomness is
+It'll regenerate everything in `plots/` along the way. Everything that uses randomness is
 seeded (`random_state=42`), so re-running should reproduce the same numbers reported in the PDF.
 
 To rebuild the PDF report after re-running the notebook (e.g. if a figure changed):
